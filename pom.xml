@@ -9,10 +9,41 @@
     <packaging>jar</packaging>
 
     <name>ignite-redis</name>
+    <description>Apache Ignite Redis Module</description>
     <url>http://github.com/aalda/ignite-redis</url>
+    <inceptionYear>2016</inceptionYear>
+    <issueManagement>
+        <system>GitHub Issue Tracking</system>
+        <url />
+    </issueManagement>
+
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>aalda</id>
+            <name>Álvaro Alda</name>
+            <timezone>+1</timezone>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>http://github.com/aalda/ignite-redis/tree/${scm.branch}</url>
+        <connection>scm:git:git://github.com/aalda/ignite-redis.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/aalda/ignite-redis.git</developerConnection>
+    </scm>
 
     <properties>
 
+        <scm.branch>master</scm.branch>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Dependency versions -->
@@ -24,6 +55,11 @@
         <junit.version>4.11</junit.version>
         <log4j.version>1.2.17</log4j.version>
         <slf4j.version>1.7.7</slf4j.version>
+
+        <!-- Plugin versions -->
+        <maven-compiler-plugin.version>3.1</maven-compiler-plugin.version>
+        <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
+        <maven-enforcer-plugin.version>1.4</maven-enforcer-plugin.version>
 
     </properties>
 
@@ -117,8 +153,9 @@
         <plugins>
 
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>${maven-compiler-plugin.version}</version>
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
@@ -127,8 +164,18 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${maven-javadoc-plugin.version}</version>
+                <configuration>
+                    <failOnError>false</failOnError>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>1.4</version>
+                <version>${maven-enforcer-plugin.version}</version>
                 <configuration>
                     <rules>
                         <requireJavaVersion>
@@ -155,27 +202,5 @@
         </plugins>
 
     </build>
-
-    <profiles>
-
-        <profile>
-            <id>java8</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-    </profiles>
 
 </project>
