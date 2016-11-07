@@ -2,7 +2,6 @@ package io.github.aalda.ignite.spi.discovery.tcp.ipfinder.redis;
 
 import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.internal.util.tostring.GridToStringExclude;
-import org.apache.ignite.internal.util.typedef.internal.A;
 import org.apache.ignite.internal.util.typedef.internal.SB;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.resources.LoggerResource;
@@ -10,11 +9,9 @@ import org.apache.ignite.spi.IgniteSpiException;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.TcpDiscoveryIpFinderAdapter;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.exceptions.JedisException;
 
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -142,7 +139,7 @@ public class TcpDiscoveryRedisIpFinder extends TcpDiscoveryIpFinderAdapter {
 
                 String serializedAddress = serializeAddress(address);
 
-                if (jedis.sismember(key, serializedAddress)) {
+                if (!jedis.sismember(key, serializedAddress)) {
                     log.warning("Asked to unregister address from Redis IP Finder, but no match was found in local " +
                             "instance map for: " + address);
                 } else {

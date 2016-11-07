@@ -1,6 +1,8 @@
 package io.github.aalda.ignite.spi.discovery.tcp.ipfinder.redis;
 
 import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCheckedException;
+import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.events.Event;
 import org.apache.ignite.events.EventType;
@@ -8,6 +10,7 @@ import org.apache.ignite.internal.IgniteEx;
 import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.internal.IgnitionEx;
 import org.apache.ignite.internal.util.typedef.G;
+import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lang.IgniteBiPredicate;
 import org.apache.ignite.logger.slf4j.Slf4jLogger;
 import org.jetbrains.annotations.Nullable;
@@ -38,6 +41,7 @@ public abstract class TcpDiscoveryIpFinderBaseTest {
     protected IgniteConfiguration getDefaultConfiguration(String gridName) throws Exception {
         IgniteConfiguration cfg = new IgniteConfiguration();
         cfg.setGridName(gridName);
+        cfg.setLocalHost("127.0.0.1");
         cfg.setGridLogger(new Slf4jLogger());
         cfg.setNetworkTimeout(10000);
         return cfg;
@@ -59,19 +63,66 @@ public abstract class TcpDiscoveryIpFinderBaseTest {
     }
 
     private Ignite startGrid(String gridName) throws Exception {
-        return startGrid(gridName, getConfiguration(gridName));
+        return startGrid(getConfiguration(gridName));
     }
 
-    private Ignite startGrid(String gridName, IgniteConfiguration cfg) throws Exception {
-        startingGrid.set(gridName);
-        try {
-            Ignite node = IgnitionEx.start(cfg);
-            log.info("Node started with the following configuration [id=" + node.cluster().localNode().id() + "]");
-            return node;
-        } finally {
-            startingGrid.set(null);
-        }
+    private Ignite startGrid(IgniteConfiguration cfg) throws Exception {
+        Ignite node = IgnitionEx.start(cfg);
+        log.info("Node started with the following configuration [id=" + node.cluster().localNode().id() + "]");
+        return node;
     }
+
+    /**
+     * @param cnt Grid count.
+     * @return First started grid.
+     * @throws Exception If failed.
+     */
+    protected final Ignite startGrids(int cnt) throws Exception {
+        assert cnt > 0;
+
+        Ignite ignite = null;
+
+        for (int i = 0; i < cnt; i++)
+            if (ignite == null)
+                ignite = startGrid(i);
+            else
+                startGrid(i);
+
+        checkTopology(cnt);
+
+        assert ignite != null;
+
+        return ignite;
+    }
+
+    /**
+     * @param cnt Grid count
+     * @throws Exception If an error occurs.
+     */
+    private void checkTopology(int cnt) throws Exception {
+        for (int j = 0; j < 10; j++) {
+            boolean topOk = true;
+
+            for (int i = 0; i < cnt; i++) {
+                if (cnt != grid(i).cluster().nodes().size()) {
+                    log.warn("Grid size is incorrect (will re-run check in 1000 ms) " +
+                            "[name=" + grid(i).name() + ", size=" + grid(i).cluster().nodes().size() + ']');
+
+                    topOk = false;
+
+                    break;
+                }
+            }
+
+            if (topOk)
+                return;
+            else
+                Thread.sleep(1000);
+        }
+
+        throw new Exception("Failed to wait for proper topology: " + cnt);
+    }
+
 
     /**
      * @param idx Index of the grid to stop.
@@ -165,7 +216,7 @@ public abstract class TcpDiscoveryIpFinderBaseTest {
     }
 
     /**
-     * @param ignite Node.
+     * @param ignite     Node.
      * @param joinEvtCnt Expected events number.
      * @return Events latch.
      */
@@ -173,13 +224,35 @@ public abstract class TcpDiscoveryIpFinderBaseTest {
         final CountDownLatch latch = new CountDownLatch(joinEvtCnt);
 
         ignite.events().remoteListen(new IgniteBiPredicate<UUID, Event>() {
-            @Override public boolean apply(UUID uuid, Event evt) {
+            @Override
+            public boolean apply(UUID uuid, Event evt) {
                 latch.countDown();
                 return true;
             }
         }, null, EventType.EVT_NODE_JOINED);
 
         return latch;
+    }
+
+    /**
+     * @param ignite Grid
+     * @param cnt    Count
+     * @throws IgniteCheckedException If failed.
+     */
+    protected void waitForRemoteNodes(Ignite ignite, int cnt) throws IgniteCheckedException {
+        while (true) {
+            Collection<ClusterNode> nodes = ignite.cluster().forRemotes().nodes();
+
+            if (nodes != null && nodes.size() == cnt)
+                return;
+
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ignored) {
+                throw new IgniteCheckedException("Interrupted while waiting for remote nodes [gridName=" + ignite.name() +
+                        ", count=" + cnt + ']');
+            }
+        }
     }
 
 }

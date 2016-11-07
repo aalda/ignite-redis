@@ -27,3 +27,5 @@ are interested in):
     </dependencies>
     ...
 </project>
+
+Currently does not support Redis clusters
