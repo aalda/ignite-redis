@@ -2,7 +2,7 @@ Apache Ignite Redis Module
 ------------------------------
 
 Apache Ignite Redis module provides a TCP Discovery IP Finder that uses a Redis
-directory to locate other Ignite nodes to connect to.
+set to locate other Ignite nodes to connect to.
 
 Importing Apache Ignite Redis Module In Maven Project
 ---------------------------------------------------------
@@ -11,6 +11,7 @@ If you are using Maven to manage dependencies of your project, you can add the R
 module dependency like this (replace '${ignite-redis.version}' with actual Ignite version you
 are interested in):
 
+```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
@@ -27,5 +28,6 @@ are interested in):
     </dependencies>
     ...
 </project>
+```
 
 Currently does not support Redis clusters
