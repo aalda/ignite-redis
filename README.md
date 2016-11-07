@@ -1,6 +1,8 @@
 Apache Ignite Redis Module
 ------------------------------
 
+[![Build Status](https://travis-ci.org/aalda/ignite-redis.svg)](https://travis-ci.org/aalda/ignite-redis)
+
 Apache Ignite Redis module provides a TCP Discovery IP Finder that uses a Redis
 set to locate other Ignite nodes to connect to.
 
