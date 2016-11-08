@@ -5,4 +5,4 @@ jdk:
   - oraclejdk7
 
 script:
-  - mvn clean install -B
+  - mvn clean verify
