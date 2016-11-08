@@ -104,7 +104,7 @@ public class TcpDiscoveryRedisIpFinderTest extends TcpDiscoveryIpFinderBaseTest 
     /**
      * @throws Exception If failed.
      */
-   // @Test
+    @Test
     public void testFourNodesStartingAndStopping() throws Exception {
         // start one node
         startGrid(0);
@@ -138,9 +138,14 @@ public class TcpDiscoveryRedisIpFinderTest extends TcpDiscoveryIpFinderBaseTest 
         assertThat(grid(2).cluster().metrics().getTotalNodes(), equalTo(3));
         assertThat(grid(3).cluster().metrics().getTotalNodes(), equalTo(3));
 
-        // stop all remaining grids
+        // stop two remaining grids
         stopGrid(1);
         stopGrid(2);
+
+        // Let the remaining node to unregister addresses
+        Thread.sleep(1000);
+
+        // stop the the last remaining grid
         stopGrid(3);
 
         // check that the nodes are gone in Redis
@@ -150,7 +155,7 @@ public class TcpDiscoveryRedisIpFinderTest extends TcpDiscoveryIpFinderBaseTest 
     /**
      * @throws Exception If failed.
      */
-   // @Test
+    @Test
     public void testFourNodesRestartLastSeveralTimes() throws Exception {
 
         // start 4 nodes
@@ -168,6 +173,9 @@ public class TcpDiscoveryRedisIpFinderTest extends TcpDiscoveryIpFinderBaseTest 
             // stop last grid
             stopGrid(2);
 
+            // Let the remaining nodes to unregister addresses
+            Thread.sleep(1000);
+
             // check that the node has unregistered itself and its party
             assertThat(registeredAddresses().size(), equalTo(3));
 
@@ -178,8 +186,18 @@ public class TcpDiscoveryRedisIpFinderTest extends TcpDiscoveryIpFinderBaseTest 
             assertThat(registeredAddresses().size(), equalTo(4));
         }
 
-        stopAllGrids();
+        // stop three grids
+        stopGrid(0);
+        stopGrid(1);
+        stopGrid(2);
 
+        // Let the remaining node to unregister addresses
+        Thread.sleep(1000);
+
+        // stop the the last remaining grid
+        stopGrid(3);
+
+        // check that the nodes are gone in Redis
         assertThat(registeredAddresses().size(), equalTo(0));
     }
 
@@ -207,6 +225,8 @@ public class TcpDiscoveryRedisIpFinderTest extends TcpDiscoveryIpFinderBaseTest 
         discoSpi.setMaxMissedHeartbeats(30);
         // Set heartbeat interval to 1 second to speed up tests.
         discoSpi.setHeartbeatFrequency(1000);
+        // Set clean frequency to 500 milliseconds to speed up address unregistering
+        discoSpi.setIpFinderCleanFrequency(500);
         discoSpi.setIpFinder(redisIpFinder);
 
         configuration.setDiscoverySpi(discoSpi);

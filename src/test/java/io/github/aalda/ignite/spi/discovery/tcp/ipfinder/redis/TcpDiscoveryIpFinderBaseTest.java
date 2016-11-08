@@ -27,11 +27,6 @@ public abstract class TcpDiscoveryIpFinderBaseTest {
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
     /**
-     * Starting grid name.
-     */
-    private static final ThreadLocal<String> startingGrid = new ThreadLocal<>();
-
-    /**
      * Default Ignite configuration without the {#TcpDiscoveryRedisIpFinder}.
      *
      * @param gridName Grid name.
